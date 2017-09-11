@@ -5,11 +5,7 @@ module BB2MD
     end
 
     def parse
-      @text = BB2MD::Quote.new(@text).text
+      BB2MD::Quote.new(@text).text
     end
   end
 end
-
-require './quote.rb'
-
-BB2MD::Parser.new("").parse

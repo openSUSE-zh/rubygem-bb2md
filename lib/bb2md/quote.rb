@@ -29,8 +29,8 @@ module BB2MD
 
       escaped_quoted_text = escape(quoted_text)
 
-      text.sub(first_start_quote + quoted_text + first_end_quote,
-               first_start_quote.sub(/:.*$/, ']') + escaped_quoted_text + '[/quote]')
+      text.gsub(first_start_quote + quoted_text + first_end_quote,
+                first_start_quote.sub(/:.*$/, ']') + escaped_quoted_text + '[/quote]')
     end
 
     def escape(text)

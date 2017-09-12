@@ -13,10 +13,10 @@ module BB2MD
         if code[1].index("\n")
           arr = code[1].split("\n").map! {|i| i.gsub(/^/, "\s\s\s\s") }
           str = arr.join("\n")
-          text.gsub!("#{code[1]}", "")
+          text.gsub!(Regexp.escape(code[1]), "")
           text.gsub!("[code:#{code[0]}][/code:#{code[0]}]", "\n#{str}\n")
         else
-          text.gsub!("[code:#{code[0]}]#{code[1]}[/code:#{code[0]}]", "\n\s\s\s\s#{code[1]}\n")
+          text.gsub!("[code:#{code[0]}]#{Regexp.escape(code[1])}[/code:#{code[0]}]", "\n\s\s\s\s#{code[1]}\n")
         end
       end
       text

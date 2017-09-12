@@ -13,7 +13,7 @@ module BB2MD
       return unless text =~ regex
       imgs = text.scan(regex)
       imgs.each do |i|
-        text.gsub!("[img:#{i[0]}]#{i[1]}[/img:#{i[0]}]", "\n![](#{i[1]})\n")
+        text.gsub!("[img:#{i[0]}]#{Regexp.escape(i[1])}[/img:#{i[0]}]", "\n![](#{i[1]})\n")
       end
       text
     end

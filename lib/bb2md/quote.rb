@@ -3,7 +3,7 @@ module BB2MD
   class Quote
     attr_reader :text
     def initialize(text)
-      @text = parse(text)
+      @text = parse(text) || text
     end
 
     private

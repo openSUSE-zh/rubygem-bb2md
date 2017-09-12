@@ -2,7 +2,7 @@ module BB2MD
   class Code
     attr_reader :text
     def initialize(text)
-      @text = parse(text)
+      @text = parse(text) || text
     end
 
     private

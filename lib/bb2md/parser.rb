@@ -5,9 +5,10 @@ module BB2MD
     end
 
     def parse
-      @text = BB2MD::Quote.new(@text).text || @text
-      @text = BB2MD::Code.new(@text).text || @text
-      @text = BB2MD::URL.new(@text).text || @text
+      @text = BB2MD::Quote.new(@text).text
+      @text = BB2MD::Code.new(@text).text
+      @text = BB2MD::URL.new(@text).text
+      @text = BB2MD::Image.new(@text).text
     end
   end
 end

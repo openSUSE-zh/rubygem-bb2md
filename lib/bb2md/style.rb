@@ -4,7 +4,7 @@ module BB2MD
       def method_missing(style, symbol, text, replaced)
         super unless [:bold, :italic, :underline, :strike, :color, :size].include?(style)
         regex = /\[#{symbol}.*?:(.*?)\](.*?)\[\/#{symbol}:.*?\]/m
-        return unless text =~ regex
+        return text unless text =~ regex
         vars = text.scan(regex)
         vars.each do |v|
           text.gsub!(/\[#{symbol}.*?:#{v[0]}\]#{Regexp.escape(v[1])}\[\/#{symbol}:#{v[0]}\]/, replaced + v[1] + replaced)

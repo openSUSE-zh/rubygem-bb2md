@@ -5,7 +5,8 @@ module BB2MD
     end
 
     def parse
-      BB2MD::Quote.new(@text).text
+      @text = BB2MD::Quote.new(@text).text || @text
+      @text = BB2MD::Code.new(@text).text || @text
     end
   end
 end

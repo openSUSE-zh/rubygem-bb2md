@@ -9,7 +9,7 @@ module BB2MD
 
     def parse(text, id)
       blocks = text.scan(%r{\[code:#{id}\](.*?)\[/code:#{id}\]}m)
-      return text if blocks.empty?
+      return BB2MD::Style.parse(text, id) if blocks.empty?
       blocks.map! {|i| i[0] }
 
       text = parse_long_block(text, id, blocks)
@@ -20,7 +20,7 @@ module BB2MD
     def parse_long_block(text, id, blocks)
       b = blocks.select { |i| i.strip.index("\n") }
 
-      return text if b.empty?
+      return BB2MD::Style.parse(text, id) if b.empty?
 
       strs = b.map do |c|
         arr = c.split("\n").map! { |i| i.gsub(/^/, "\s\s\s\s") }
@@ -40,7 +40,7 @@ module BB2MD
 
     def parse_short_block(text, id, blocks)
       b = blocks.reject { |i| i.strip.index("\n") }
-      return text if b.empty?
+      return BB2MD::Style.parse(text, id) if b.empty?
       b.each do |c|
         text.gsub!("[code:#{id}]#{c}[/code:#{id}]",
                    "\n\s\s\s\s#{c}\n")

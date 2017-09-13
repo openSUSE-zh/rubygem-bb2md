@@ -35,9 +35,9 @@ module BB2MD
 
       m.each do |i|
         if i[1].nil?
-          text.sub!("[quote:#{id}]#{i[2]}[/quote:#{id}]", "[quote:#{id}]#{escape(i[2])}[/quote:#{id}]")
+          text.sub!("[quote:#{id}]#{i[2]}[/quote:#{id}]", "[quote]#{escape(i[2])}[/quote]")
         else
-          text.sub!("[quote#{i[0]}:#{id}]#{i[2]}[/quote:#{id}]", "[quote#{i[0]}:#{id}]#{escape(i[2])}[/quote:#{id}]")
+          text.sub!("[quote#{i[0]}:#{id}]#{i[2]}[/quote:#{id}]", "[quote#{i[0]}]#{escape(i[2])}[/quote]")
         end
       end
 

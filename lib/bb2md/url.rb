@@ -2,38 +2,37 @@ module BB2MD
   # Parse the URLs
   class URL
     attr_reader :text
-    def initialize(text)
-      @text = parse(text) || text
-      @text = parse1(@text) || @text
+    def initialize(text, id)
+      @text = parse(text, id)
+      @text = parse1(@text, id)
     end
 
     private
 
-    def parse(text)
-      regex = %r{\[url(=(.*?))?:(.*?)\](.*?)\[/url:.*?\]}m
-      return unless text =~ regex
+    def parse(text, id)
+      regex = %r{\[url(=(.*?))?:#{id}\](.*?)\[/url:#{id}\]}m
+      return text unless text =~ regex
       urls = text.scan(regex)
+
       urls.each do |u|
-        if u[1].nil?
-          url_id = u[2]
-          url = u[3]
+        if u[0].nil?
+          url = u[2]
           url_unescaped = url.gsub('&#58;', ':').gsub('&#46;', '.')
-          text.gsub!("[url:#{url_id}]#{Regexp.escape(url)}[/url:#{url_id}]",
-                     "[#{url_unescaped}](#{url_unescaped})")
+          text.gsub!("[url:#{id}]#{url}[/url:#{id}]",
+                     "\s[#{url_unescaped}](#{url_unescaped})\s")
         else
           url = u[1]
           url_unescaped = url.gsub('&#58;', ':').gsub('&#46;', '.')
-          url_id = u[2]
-          url_text = u[3]
-          text.gsub!("[url=#{Regexp.escape(url)}:#{url_id}]" \
-                     "#{Regexp.escape(url_text)}[/url:#{url_id}]",
-                     "[#{url_text}](#{url_unescaped})")
+          url_text = u[2]
+          text.gsub!("[url=#{url}:#{id}]" \
+                     "#{url_text}[/url:#{id}]",
+                     "\s[#{url_text}](#{url_unescaped})\s")
         end
       end
       text
     end
 
-    def parse1(text)
+    def parse1(text, id)
       regex = %r{\[url\](.*?)\[/url\]}m
       return text unless text =~ regex
       urls = text.scan(regex)

@@ -1,47 +1,51 @@
 module BB2MD
   class Code
     attr_reader :text
-    def initialize(text)
-      @text = parse(text)
+    def initialize(text, id)
+      @text = parse(text, id)
     end
 
     private
 
-    def parse(text)
-      blocks = text.scan(%r{\[code:(.*?)\](.*?)\[/code:.*?\]}m)
-      text = parse_long_block(text, blocks)
-      text = parse_short_block(text, blocks)
+    def parse(text, id)
+      blocks = text.scan(%r{\[code:#{id}\](.*?)\[/code:#{id}\]}m)
+      return text if blocks.empty?
+      blocks.map! {|i| i[0] }
+
+      text = parse_long_block(text, id, blocks)
+      text = parse_short_block(text, id, blocks)
       text
     end
 
-    def parse_long_block(text, blocks)
-      b = blocks.select { |i| i[1].strip.index("\n") }
+    def parse_long_block(text, id, blocks)
+      b = blocks.select { |i| i.strip.index("\n") }
+
       return text if b.empty?
 
       strs = b.map do |c|
-        arr = c[1].split("\n").map! { |i| i.gsub(/^/, "\s\s\s\s") }
-        [c[0], arr.join("\n")]
+        arr = c.split("\n").map! { |i| i.gsub(/^/, "\s\s\s\s") }
+        arr.join("\n")
       end
 
-      b.each { |c| text.gsub!(c[1], '') }
+      b.each { |c| text.gsub!(c, '') }
 
-      text = BB2MD::Style.parse(text)
+      text = BB2MD::Style.parse(text, id)
 
       strs.each do |s|
-        text.gsub!("[code:#{s[0]}][/code:#{s[0]}]", "\n#{s[1]}\n")
+        text.gsub!("[code:#{id}][/code:#{id}]", "\n#{s}\n")
       end
 
       text
     end
 
-    def parse_short_block(text, blocks)
-      b = blocks.reject { |i| i[1].strip.index("\n") }
+    def parse_short_block(text, id, blocks)
+      b = blocks.reject { |i| i.strip.index("\n") }
       return text if b.empty?
       b.each do |c|
-        text.gsub!("[code:#{c[0]}]#{c[1]}[/code:#{c[0]}]",
-                   "\n\s\s\s\s#{c[1]}\n")
+        text.gsub!("[code:#{id}]#{c}[/code:#{id}]",
+                   "\n\s\s\s\s#{c}\n")
       end
-      text = BB2MD::Style.parse(text)
+      text = BB2MD::Style.parse(text, id)
     end
   end
 end

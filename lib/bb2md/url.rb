@@ -4,7 +4,8 @@ module BB2MD
     attr_reader :text
     def initialize(text, id)
       @text = parse(text, id)
-      @text = parse1(@text, id)
+      @text = parse_plain_url(@text, id)
+      @text = parse_postlink(@text, id)
     end
 
     private
@@ -32,12 +33,29 @@ module BB2MD
       text
     end
 
-    def parse1(text, id)
+    def parse_plain_url(text, id)
       regex = %r{\[url\](.*?)\[/url\]}m
-      return text unless text =~ regex
       urls = text.scan(regex)
+      return text if urls.empty?
       urls.each do |u|
         text.gsub!("[url]#{u[0]}[/url]", "[#{u[0]}](#{u[0]})")
+      end
+      text
+    end
+
+    def parse_postlink(text, id)
+      regex = %r{<\!-- [a-z] --><a class="postlink" href="(.*?)">.*?</a><\!-- [a-z] -->}m
+      urls = text.scan(regex)
+      return text if urls.empty?
+      urls.each do |u|
+        if u[0] =~ /\.(png|jpg|jpeg|gif)$/
+          replaced = "![](#{u[0]})"
+        else
+          replaced = "[#{u[0]}](#{u[0]})"
+        end
+
+        text.sub!(%r{<\!-- [a-z] --><a class="postlink" href="#{Regexp.escape(u[0])}">.*?</a><\!-- [a-z] -->},
+                  replaced)
       end
       text
     end

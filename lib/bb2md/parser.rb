@@ -10,6 +10,7 @@ module BB2MD
       @text = BB2MD::Code.new(@text, @id).text
       @text = BB2MD::URL.new(@text, @id).text
       @text = BB2MD::Image.new(@text, @id).text
+      @text = BB2MD::List.new(@text, @id).text
     end
   end
 end

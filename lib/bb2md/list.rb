@@ -3,55 +3,97 @@ module BB2MD
   class List
     attr_reader :text
     def initialize(text, id)
-      @text = recursive_parse(text, id)
+      text, max = add_tags(text, id)
+      @text = recursive_parse(text, id, max)
     end
 
     private
 
-    def recursive_parse(text, id)
-      regex = %r{\[list(.*?):#{id}\](.*?)\[/list:(o|u):#{id}\]}m
+    def add_tags(text, id)
+      level = 0
+      max = 0
+      text.gsub!(%r{\[\/?list.*?:#{id}\]}) do |list|
+        if list =~ /\[list/
+          level += 1
+          max = level if max < level
+          level.to_s + '-' + list
+        elsif list =~ %r{\[/list}
+          level -= 1
+          (level + 1).to_s + '-' + list
+        end
+      end
+      [text, max]
+    end
+
+    def recursive_parse(text, id, round)
+      return text if round.zero?
+      regex = %r{#{round}-\[list(.*?):#{id}\](.*?)#{round}-\[/list:(o|u):#{id}\]}m
       regex_item = %r{\[\*:#{id}\](.*?)\[/\*:m:#{id}\]}m
       lists = text.scan(regex)
       return text if lists.empty?
-      lists.each do |i|
-        if i[1] =~ /\[list(.*?):#{id}\](.*)$/m
-          index = Regexp.last_match[1]
-          str = Regexp.last_match[2]
-          text = parse(index, str, i[2], regex_item, text, id)
+
+      items = lambda do |i|
+        vars = i[1].scan(regex_item)
+        if vars.empty?
+          parse_no_item(i, text, id, round)
         else
-          text = parse(i[0], i[1], i[2], regex_item, text, id)
+          parse(i, vars, text, id, round)
         end
       end
 
-      # second round
-      new_lists = text.scan(regex)
-      return text if new_lists.empty?
-      new_lists.each do |j|
-        text = parse(j[0], j[1], j[2], regex_item, text, id)
-      end
-
-      text
+      lists.each { |i| text = items.call(i) }
+      round -= 1
+      recursive_parse(text, id, round)
     end
 
-    def parse(index, str, type, regex, text, id)
+    def parse(i, vars, text, id, round)
       new_text = ''
-      vars = str.scan(regex)
-      return text if vars.empty?
-      if type == 'u'
+      indent = "\t" * round
+      if i[2] == 'u'
         # unordered
         vars.each do |item|
-          new_text << "* #{item[0]}\n"
+          new_text << "#{indent}* #{item[0]}\n"
         end
       else
         # ordered
         j = 1
         vars.each do |item|
-          new_text << "#{j}. #{item[0]}\n"
+          new_text << "#{indent}#{j}. #{item[0]}\n"
           j += 1
         end
       end
-      text.sub!("[list#{index}:#{id}]#{str}[/list:#{type}:#{id}]",
-                new_text)
+      text.sub("#{round}-[list#{i[0]}:#{id}]#{i[1]}#{round}-[/list:#{i[2]}:#{id}]",
+               new_text)
+    end
+
+    def parse_no_item(i, text, id, round)
+      newstr = ''
+      indent = "\t" * round
+
+      parse = lambda do |str, num|
+        if str[0] =~ /[0-9]/
+          str.sub(str[0], indent + num + ".\s")
+        elsif str[0] == '*'
+          indent + str
+        else
+          indent + "*\s" + str
+        end
+      end
+
+      if i[1].strip.index("\n")
+        arr = i[1].strip.split("\n").map!(&:strip)
+        if arr[0][0] =~ /[0-9]/
+          j = 1
+          arr.each { |a| newstr << parse.call(a, j.to_s) + "\n"; j += 1 }
+        else
+          arr.each { |a| newstr << parse.call(a, '') + "\n" }
+        end
+      else
+        newstr = parse.call(i[1], '1')
+      end
+
+      text.sub!("#{round}-[list#{i[0]}:#{id}]#{i[1]}#{round}-[/list:#{i[2]}:#{id}]",
+                newstr)
     end
   end
 end

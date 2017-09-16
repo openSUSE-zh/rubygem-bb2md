@@ -23,7 +23,7 @@ module BB2MD
       return BB2MD::Style.parse(text, id) if b.empty?
 
       strs = b.map do |c|
-        arr = c.split("\n").map! { |i| i.gsub(/^/, "\s\s\s\s") }
+        arr = c.split("\n").map! { |i| i.gsub(/^/, "\t") }
         arr.join("\n")
       end
 
@@ -43,7 +43,7 @@ module BB2MD
       return BB2MD::Style.parse(text, id) if b.empty?
       b.each do |c|
         text.gsub!("[code:#{id}]#{c}[/code:#{id}]",
-                   "\n\s\s\s\s#{c}\n")
+                   "\n\t#{c}\n")
       end
       text = BB2MD::Style.parse(text, id)
     end

@@ -32,7 +32,7 @@ module BB2MD
       text = BB2MD::Style.parse(text, id)
 
       strs.each do |s|
-        text.gsub!("[code:#{id}][/code:#{id}]", "\n#{s}\n")
+        text.gsub!("[code:#{id}][/code:#{id}]", "\n#{escape_backslash(s)}\n")
       end
 
       text
@@ -43,9 +43,14 @@ module BB2MD
       return BB2MD::Style.parse(text, id) if b.empty?
       b.each do |c|
         text.gsub!("[code:#{id}]#{c}[/code:#{id}]",
-                   "\n\t#{c}\n")
+                   "\n\t#{escape_backslash(c)}\n")
       end
       text = BB2MD::Style.parse(text, id)
+    end
+
+    def escape_backslash(text)
+      # escape backslash in case of "\1" or "\&" left
+      text.gsub(/\\(.*?)/) { "&#92;" + Regexp.last_match(1) }
     end
   end
 end

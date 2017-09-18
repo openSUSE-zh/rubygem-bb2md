@@ -3,13 +3,13 @@ module BB2MD
   class List
     attr_reader :text
     def initialize(text, id)
-      text, max = add_tags(text, id)
-      @text = recursive_parse(text, id, max)
+      @tagged, max = tag(text, id)
+      @text = recursive_parse(@tagged, id, max)
     end
 
     private
 
-    def add_tags(text, id)
+    def tag(text, id)
       level = 0
       max = 0
       text.gsub!(%r{\[\/?list.*?:#{id}\]}) do |list|
@@ -50,18 +50,18 @@ module BB2MD
       new_text = ''
       indent = "\t" * round
       if i[2] == 'u'
-        # unordered
-        vars.each do |item|
-          new_text << "#{indent}* #{item[0]}\n"
-        end
+        j = '*'
       else
-        # ordered
         j = 1
-        vars.each do |item|
-          new_text << "#{indent}#{j}. #{item[0]}\n"
-          j += 1
-        end
       end
+
+      vars.each do |item|
+        new_text << "#{indent}#{j}"
+        new_text << "." if i[2] == 'o'
+        new_text << "\s#{item[0]}\n"
+        j += 1 if i[2] == 'o'
+      end
+
       text.sub("#{round}-[list#{i[0]}:#{id}]#{i[1]}#{round}-[/list:#{i[2]}:#{id}]",
                new_text)
     end
@@ -92,8 +92,8 @@ module BB2MD
         newstr = parse.call(i[1], '1')
       end
 
-      text.sub!("#{round}-[list#{i[0]}:#{id}]#{i[1]}#{round}-[/list:#{i[2]}:#{id}]",
-                newstr)
+      text.sub("#{round}-[list#{i[0]}:#{id}]#{i[1]}#{round}-[/list:#{i[2]}:#{id}]",
+               newstr)
     end
   end
 end

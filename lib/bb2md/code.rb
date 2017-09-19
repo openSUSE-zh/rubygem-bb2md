@@ -1,3 +1,6 @@
+#require 'latincjk'
+#require 'suse_typo'
+
 module BB2MD
   class Code
     attr_reader :text
@@ -9,7 +12,7 @@ module BB2MD
 
     def parse(text, id)
       blocks = text.scan(%r{\[code:#{id}\](.*?)\[/code:#{id}\]}m)
-      return BB2MD::Style.parse(text, id) if blocks.empty?
+      return parse_no_code(text, id) if blocks.empty?
       blocks.map! {|i| i[0] }
 
       text = parse_long_block(text, id, blocks)
@@ -20,7 +23,7 @@ module BB2MD
     def parse_long_block(text, id, blocks)
       b = blocks.select { |i| i.strip.index("\n") }
 
-      return BB2MD::Style.parse(text, id) if b.empty?
+      return parse_no_code(text, id) if b.empty?
 
       strs = b.map do |c|
         arr = c.split("\n").map! { |i| i.gsub(/^/, "\t") }
@@ -29,7 +32,7 @@ module BB2MD
 
       b.each { |c| text.gsub!(c, '') }
 
-      text = BB2MD::Style.parse(text, id)
+      text = parse_no_code(text, id)
 
       strs.each do |s|
         text.gsub!("[code:#{id}][/code:#{id}]", "\n#{escape_backslash(s)}\n")
@@ -40,17 +43,23 @@ module BB2MD
 
     def parse_short_block(text, id, blocks)
       b = blocks.reject { |i| i.strip.index("\n") }
-      return BB2MD::Style.parse(text, id) if b.empty?
+      return parse_no_code(text, id) if b.empty?
       b.each do |c|
         text.gsub!("[code:#{id}]#{c}[/code:#{id}]",
                    "\n\t#{escape_backslash(c)}\n")
       end
-      text = BB2MD::Style.parse(text, id)
+      text = parse_no_code(text, id)
     end
 
     def escape_backslash(text)
       # escape backslash in case of "\1" or "\&" left
       text.gsub(/\\(.*?)/) { "&#92;" + Regexp.last_match(1) }
+    end
+
+    def parse_no_code(text, id)
+      t = BB2MD::Style.parse(text, id)
+#      t = LatinCJK::Parser.new(t).text
+#      t = SUSETypo::Parser.new(t).text
     end
   end
 end

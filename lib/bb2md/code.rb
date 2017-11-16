@@ -30,12 +30,12 @@ module BB2MD
         arr.join("\n")
       end
 
-      b.each { |c| text.gsub!(c, '') }
+      b.each_with_index { |c,i| text.gsub!(c, i.to_s) }
 
       text = parse_no_code(text, id)
 
-      strs.each do |s|
-        text.gsub!("[code:#{id}][/code:#{id}]", "\n#{escape_backslash(s)}\n")
+      strs.each_with_index do |s,i|
+	      text.gsub!("[code:#{id}]#{i.to_s}[/code:#{id}]", "\n#{escape_backslash(s)}\n")
       end
 
       text
